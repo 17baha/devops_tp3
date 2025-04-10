@@ -14,12 +14,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build Docker Image
+      - name: Build and Tag Docker Image
         uses: docker/build-push-action@v4
         with:
           context: .
-          tags: my-docker-app:latest
-          load: true  # Makes the image available for local jobs
+          tags: my-docker-app:latest,bahamelki/my-docker-app:latest  # Tag for both local and Docker Hub
+          load: true  # Make image available locally
 
       - name: Run Tests
         run: docker run --rm my-docker-app:latest ./run-tests.sh
@@ -31,7 +31,9 @@ jobs:
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Tag and Push
-        run: |
-          docker tag my-docker-app:latest bahamelki/my-docker-app:latest
-          docker push bahamelki/my-docker-app:latest
+      - name: Push Docker Image to Docker Hub
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true  # Only push the image (no rebuild)
+          tags: bahamelki/my-docker-app:latest
